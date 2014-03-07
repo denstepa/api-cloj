@@ -7,7 +7,7 @@
               [flock_api.db :as db]
               ))
 
-(declare site account campaign)
+(declare site account campaign orders rewards)
 
 (defentity site
   (database db/dev)
@@ -48,6 +48,13 @@
     (fields :id :title :description))
 )
 
+(defn get-all-orders [site params]
+  (select orders
+    (where {:site_id (site :id)})
+    (where {:parent_offer_id [not= nil]})
+    (fields :id :order_id :campaign_id :customer_id :price :order_time :confirmation_state))
+)
+
 (defentity account
   (database db/dev)
   (table :accounts)
@@ -58,4 +65,16 @@
   (database db/dev)
   (table :campaigns)
   (belongs-to site {:fk :site_id})
+)
+
+(defentity orders
+  (database db/dev)
+  (belongs-to site {:fk :site_id})
+  (belongs-to campaign {:fk :campaign_id})
+)
+
+(defentity rewards
+  (database db/dev)
+  ;(belongs-to site {:fk :site_id})
+  (belongs-to campaign {:fk :campaign_id})
 )

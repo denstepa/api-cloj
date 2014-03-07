@@ -40,25 +40,22 @@
 
 
   (context "/api2" [] (defroutes api-routes
-    (context "/*" {params :query-params} (def access_site (check-access params)) )
-    (if (not (= access_site nil))
-      ;(
-      (context "/sites" [] (defroutes sites-routes
-            (GET  "/" [] ( response (sites/get-all-sites access_site)))
-            (context "/:id" [id] (defroutes sites-routes
-              (def site (sites/get-site access_site id))
-              (GET    "/campaigns" [] (response (sites/get-all-campaigns site)))
-              (GET    "/" [] (response site))
-            ;  (PUT    "/" {body :body} (update-sites id body))
-            ;  (DELETE "/" [] (delete-sites id)))))
-             ))
+    (context "/*" {params :query-params}
+      (def site (check-access params))
+      (def params params)
+    )
+    (if (not (= site nil))
+      (context "" [] (defroutes main-routes
+        (GET "/sites" [] ( response (sites/get-all-sites site)))
+        (GET "/campaigns" [] (response (sites/get-all-campaigns site)))
 
-            (route/not-found "Not Found")
-          )
-      )
+        (GET "/orders" [] ( response (sites/get-all-orders site params)))
 
+        (route/not-found "Not Found")
+      ))
       (response "Invalid token")
     )
+
       (context "/campaigns" [] (defroutes campaigns-routes
             ;(GET  "/" [] (sites/get-all-campaigns))
             ;(POST "/" {body :body} (create-new-document body))
