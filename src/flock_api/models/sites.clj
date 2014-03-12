@@ -17,43 +17,45 @@
 )
 
 
-(defn get-all-sites [isite]
+(defn get-all-sites [account_id]
   (select site
-    (where {:account_id (isite :account_id)})
+    (where {:account_id account_id})
     (fields :id :domain :title))
 )
 
-(defn get-site [isite id]
-  ( first(select site
-    (with account)
-    (where {:id (Integer/parseInt id)})
-    (where {:account_id (isite :account_id)})
-    (limit 1)
-    (fields :id :domain :title :accounts.first_name :accounts.last_name :accounts.id))
-  )
-)
 
 
 (defn find-by-token [token]
-  (def s (select site
+  (def s (first(select site
                  (where {:token token})
                  (limit 1)
-                 (fields :id :domain :title :account_id)))
-  (if (not (empty? s)) s )
+                 (fields :id :domain :title :account_id))))
+  (if (not (nil? s)) (s :id) 0 )
 )
 
-(defn get-all-campaigns [isite]
+
+(defn get-all-campaigns [site_id]
   (select campaign
-    (where {:site_id (isite :id)})
+    (where {:site_id site_id})
     (fields :id :title :description))
 )
 
-(defn get-all-orders [site params]
+
+(defn get-all-orders [site_id params]
   (select orders
-    (where {:site_id (site :id)})
+    (where {:site_id site_id})
     (where {:parent_offer_id [not= nil]})
+    (where {:campaign_id (if
+                           (params "campaign_id")
+                           (Integer/parseInt (params "campaign_id"))
+                           [not= nil])})
+
     (fields :id :order_id :campaign_id :customer_id :price :order_time :confirmation_state))
 )
+
+;(contains? (set '("new" "confirmed" "unconfirmed")) (params "state"))
+
+;(get-all-orders 8 {"state" "confirmed"})
 
 (defentity account
   (database db/dev)

@@ -20,43 +20,30 @@
 (defn check-access [params]
   (if
     (params "token")
-    (first (sites/find-by-token (params "token")))
-  )
-)
-
-(defn retreive [params]
-  (def r
-      (if
-        (params "token")
-        (sites/find-by-token (params "token") )
-        false))
-  (response
-    (if r r (str "Invalid token " params) )
+    (sites/find-by-token (params "token"))
+    0
   )
 )
 
 
 (defroutes app-routes
+  (context "/api" {params :query-params} (defroutes api-routes
+    (let [site_id (check-access params)]
+      (if (>= site_id 5)
 
+        (context "" [] (defroutes main-routes
+        ;  (GET "/sites" [] ( response (sites/get-all-sites (isite :account_id) )))
+          (GET "/campaigns" [] (response (sites/get-all-campaigns site_id)))
 
-  (context "/api2" [] (defroutes api-routes
-    (context "/*" {params :query-params}
-      (def site (check-access params))
-      (def params params)
+          (GET "/orders" [] ( response (sites/get-all-orders site_id params)))
+
+          (GET "/" [] (response "Welcome!"))
+          (route/not-found (str "Not Found for site:" site_id))
+        ))
+        (response "Invalid token")
+      )
     )
-    (if (not (= site nil))
-      (context "" [] (defroutes main-routes
-        (GET "/sites" [] ( response (sites/get-all-sites site)))
-        (GET "/campaigns" [] (response (sites/get-all-campaigns site)))
-
-        (GET "/orders" [] ( response (sites/get-all-orders site params)))
-
-        (route/not-found "Not Found")
-      ))
-      (response "Invalid token")
-    )
-
-      (context "/campaigns" [] (defroutes campaigns-routes
+     ; (context "/campaigns" [] (defroutes campaigns-routes
             ;(GET  "/" [] (sites/get-all-campaigns))
             ;(POST "/" {body :body} (create-new-document body))
             ;(context "/:id" [id] (defroutes sites-routes
@@ -65,9 +52,10 @@
             ;  (DELETE "/" [] (delete-sites id)))))
             ;  )
            ; )
-            (route/not-found "Not Found")
-          )
-      )
+      ;      (route/not-found "Not Found")
+       ;   )
+      ;)
+    ;)
   ))
 
   ;(GET "/api*" {params :query-params} (retreive params) )
